@@ -263,6 +263,7 @@ def get_all_tracking():
     data = load_data()
     return jsonify(data['tracking_ids'])
 
+# Update endpoint
 @app.route('/api/tracking/update/<tracking_id>', methods=['PUT'])
 def update_tracking(tracking_id):
     tracking_data = request.json
@@ -320,17 +321,14 @@ def delete_tracking(tracking_id):
     
     return jsonify({'success': True, 'message': 'Tracking ID deleted'})
 
-# Update the get_stats function
+# Stats endpoint
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
     data = load_data()
     
-    # Calculate real-time stats
     tracking_ids = data.get('tracking_ids', {})
-    
     stats = data.get('system_stats', {})
     
-    # Update stats with current values
     stats['total_tracking_ids'] = len(tracking_ids)
     stats['active_shipments'] = sum(
         1 for t in tracking_ids.values() 
@@ -346,13 +344,12 @@ def get_stats():
         if t.get('image_url') or t.get('image_base64')
     )
     
-    # Save updated stats
     data['system_stats'] = stats
     save_data(data)
     
     return jsonify(stats)
 
-# Fix the add_tracking function too
+# Add tracking endpoint
 @app.route('/api/tracking/add', methods=['POST'])
 def add_tracking():
     tracking_data = request.json
@@ -365,7 +362,6 @@ def add_tracking():
     if tracking_id in data['tracking_ids']:
         return jsonify({'success': False, 'error': 'Tracking ID already exists'}), 400
     
-    # Set default delivery date if not provided
     delivery_date = tracking_data.get('delivery_date', str(datetime.now().date()))
     
     data['tracking_ids'][tracking_id] = {
@@ -381,7 +377,6 @@ def add_tracking():
         'last_updated': str(datetime.now())
     }
     
-    # Ensure system_stats exists before updating
     if 'system_stats' not in data:
         data['system_stats'] = {}
     
@@ -403,6 +398,4 @@ if __name__ == '__main__':
     print("📦 Sample Tracking IDs: AB123CDE45, JGD987WQTR, BLMN654KJI")
     print("📸 Images will be saved to: uploads/")
     print("\nPress Ctrl+C to stop the server")
-
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
