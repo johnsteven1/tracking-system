@@ -32,9 +32,9 @@ def get_deployment_config():
         data_dir = os.getcwd()
         base_url = f"https://{os.environ.get('HEROKU_APP_NAME', 'your-app')}.herokuapp.com"
     elif is_pythonanywhere:
-        print("☁️ Detected PythonAnywhere deployment")
-        data_dir = '/home/yourusername/tracking_system'
-        base_url = f"https://{os.environ.get('PYTHONANYWHERE_DOMAIN', 'yourusername.pythonanywhere.com')}"
+    print("☁️ Detected PythonAnywhere deployment")
+    data_dir = '/home/johnsteven1/tracking_system'  # Your actual username
+    base_url = f"https://{os.environ.get('PYTHONANYWHERE_DOMAIN', 'johnsteven1.pythonanywhere.com')}"
     else:
         print("💻 Local development mode")
         data_dir = os.getcwd()
