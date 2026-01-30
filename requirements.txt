@@ -28,8 +28,6 @@ engineering-notation==0.10.0
 filelock==3.20.0
 find-github-email==1.2.6
 flake8==7.3.0
-Flask==2.3.3
-Flask-Cors==4.0.0
 folium==0.20.0
 frozenlist==1.8.0
 g4f==6.7.1
@@ -49,7 +47,6 @@ h11==0.16.0
 httpcore==1.0.9
 httplib2==0.31.0
 httpx==0.28.1
-numpy==1.26.4
 idna==3.11
 IMDbPY==2022.7.9
 isort==7.0.0
