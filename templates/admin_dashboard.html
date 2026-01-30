@@ -84,6 +84,7 @@
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            position: relative;
         }
 
         .header h1 {
@@ -98,16 +99,38 @@
             font-size: 1.8rem;
         }
 
-        .logout-btn {
+        .header-controls {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: #ff4757;
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             padding: 10px 15px;
             border-radius: 8px;
             cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s;
+        }
+
+        .header-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .logout-btn {
+            background: #ff4757;
+        }
+
+        .location-btn {
+            background: linear-gradient(135deg, #4cd137 0%, #44bd32 100%);
         }
 
         /* Stats Cards */
@@ -377,6 +400,67 @@
             font-size: 14px;
         }
 
+        /* Location Configuration in Settings Tab */
+        .location-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .location-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .location-info-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .location-info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .location-info-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .location-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .config-link-btn {
+            background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s;
+        }
+
+        .config-link-btn:hover {
+            transform: translateY(-2px);
+        }
+
         /* Image Modal */
         .image-modal {
             display: none;
@@ -436,6 +520,16 @@
                 grid-template-columns: 1fr;
             }
             
+            .header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .header-controls {
+                position: static;
+                margin-top: 10px;
+                justify-content: flex-end;
+            }
+            
             .table-container {
                 font-size: 14px;
             }
@@ -445,6 +539,14 @@
             }
             
             .date-input-group {
+                flex-direction: column;
+            }
+            
+            .location-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .location-actions {
                 flex-direction: column;
             }
         }
@@ -505,9 +607,14 @@
         <div class="dashboard" id="dashboard">
             <div class="header">
                 <h1><i class="fas fa-tachometer-alt"></i> Package Tracking Admin</h1>
-                <button class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+                <div class="header-controls">
+                    <button class="header-btn location-btn" onclick="openLocationConfig()">
+                        <i class="fas fa-map-marker-alt"></i> Location
+                    </button>
+                    <button class="header-btn logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
             </div>
 
             <!-- Stats -->
@@ -574,7 +681,15 @@
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-map-marker-alt"></i> Initial Location</label>
-                        <input type="text" id="newLocation" placeholder="Berlin, Germany">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="text" id="newLocation" placeholder="Berlin, Germany" style="flex: 1;">
+                            <button type="button" class="current-date-btn" onclick="useDefaultLocation()">
+                                <i class="fas fa-map-pin"></i> Default
+                            </button>
+                        </div>
+                        <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;" id="defaultLocationText">
+                            Default: Berlin, Germany
+                        </small>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-calendar-day"></i> Estimated Delivery Date</label>
@@ -655,12 +770,30 @@
             <div id="settingsTab" class="tab-content">
                 <div class="form-container">
                     <h3><i class="fas fa-cogs"></i> System Settings</h3>
+                    
+                    <!-- Location Configuration Section -->
+                    <div class="location-section">
+                        <h4><i class="fas fa-map-marker-alt"></i> Default Location Configuration</h4>
+                        <div class="location-info-grid" id="locationInfo">
+                            <!-- Location info will be loaded here -->
+                        </div>
+                        <div class="location-actions">
+                            <button class="config-link-btn" onclick="openLocationConfig()">
+                                <i class="fas fa-external-link-alt"></i> Open Location Config
+                            </button>
+                            <button class="save-btn" onclick="loadSystemConfig()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- System Settings -->
                     <div class="form-group">
-                        <label>API Endpoint</label>
+                        <label><i class="fas fa-server"></i> API Endpoint</label>
                         <input type="text" id="apiEndpoint" value="http://localhost:5000/api" readonly>
                     </div>
                     <div class="form-group">
-                        <label>Data File</label>
+                        <label><i class="fas fa-database"></i> Data File</label>
                         <input type="text" id="dataFile" value="tracking_data.json" readonly>
                     </div>
                     <button class="save-btn" onclick="exportData()" style="width: 100%; margin-bottom: 10px;">
@@ -693,6 +826,7 @@
         let allTrackingData = {};
         let currentImageTrackingId = null;
         let currentImageFile = null;
+        let systemConfig = null;
 
         // Login function
         async function login() {
@@ -715,6 +849,7 @@
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('dashboard').style.display = 'block';
                     loadDashboardData();
+                    loadSystemConfig();
                     showToast('Login successful!', 'success');
                 } else {
                     showToast('Invalid credentials!', 'error');
@@ -730,6 +865,11 @@
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'block';
             showToast('Logged out successfully', 'info');
+        }
+
+        // Open location configuration page
+        function openLocationConfig() {
+            window.open('/admin/location', '_blank');
         }
 
         // Switch tabs
@@ -755,6 +895,8 @@
                 loadTrackingData();
             } else if (tabId === 'imageTab') {
                 loadTrackingIdsForImages();
+            } else if (tabId === 'settingsTab') {
+                loadSystemConfig();
             }
         }
 
@@ -764,6 +906,44 @@
                 loadStats(),
                 loadTrackingData()
             ]);
+        }
+
+        // Load system configuration
+        async function loadSystemConfig() {
+            try {
+                const response = await fetch(`${API_BASE}/config`);
+                systemConfig = await response.json();
+                
+                // Update default location display
+                const locationInfo = document.getElementById('locationInfo');
+                if (locationInfo) {
+                    locationInfo.innerHTML = `
+                        <div class="location-info-item">
+                            <div class="location-info-label">City</div>
+                            <div class="location-info-value">${systemConfig.default_location.city}</div>
+                        </div>
+                        <div class="location-info-item">
+                            <div class="location-info-label">Latitude</div>
+                            <div class="location-info-value">${systemConfig.default_location.lat}</div>
+                        </div>
+                        <div class="location-info-item">
+                            <div class="location-info-label">Longitude</div>
+                            <div class="location-info-value">${systemConfig.default_location.long}</div>
+                        </div>
+                    `;
+                }
+                
+                // Update the default location text in add tab
+                const defaultLocationText = document.getElementById('defaultLocationText');
+                if (defaultLocationText) {
+                    defaultLocationText.textContent = `Default: ${systemConfig.default_location.city} (Lat: ${systemConfig.default_location.lat}, Lng: ${systemConfig.default_location.long})`;
+                }
+                
+                return systemConfig;
+            } catch (error) {
+                console.error('Error loading system config:', error);
+                return null;
+            }
         }
 
         // Load statistics
@@ -874,6 +1054,18 @@
                 });
             } catch (error) {
                 console.error('Error loading tracking IDs:', error);
+            }
+        }
+
+        // Use default location in add form
+        async function useDefaultLocation() {
+            if (!systemConfig) {
+                systemConfig = await loadSystemConfig();
+            }
+            
+            if (systemConfig && systemConfig.default_location) {
+                document.getElementById('newLocation').value = systemConfig.default_location.city;
+                showToast('Loaded default location', 'info');
             }
         }
 
@@ -1026,6 +1218,15 @@
                 return;
             }
             
+            // Use system config for location if not specified
+            let lat = 52.5200;
+            let long = 13.4050;
+            
+            if (systemConfig && systemConfig.default_location) {
+                lat = systemConfig.default_location.lat;
+                long = systemConfig.default_location.long;
+            }
+            
             try {
                 const response = await fetch(`${API_BASE}/tracking/add`, {
                     method: 'POST',
@@ -1042,9 +1243,9 @@
                         delivery_date: deliveryDate,
                         status: status,
                         locations: [{
-                            city: location,
-                            lat: 52.5200,
-                            long: 13.4050
+                            city: location || (systemConfig ? systemConfig.default_location.city : 'Berlin, Germany'),
+                            lat: lat,
+                            long: long
                         }]
                     })
                 });
@@ -1094,6 +1295,15 @@
             const deliveryDate = document.getElementById('newDeliveryDate').value;
             const status = document.getElementById('newStatus').value;
             
+            // Use system config for location if not specified
+            let lat = 52.5200;
+            let long = 13.4050;
+            
+            if (systemConfig && systemConfig.default_location) {
+                lat = systemConfig.default_location.lat;
+                long = systemConfig.default_location.long;
+            }
+            
             try {
                 const response = await fetch(`${API_BASE}/tracking/update/${trackingId}`, {
                     method: 'PUT',
@@ -1109,9 +1319,9 @@
                         delivery_date: deliveryDate,
                         status: status,
                         locations: [{
-                            city: location,
-                            lat: 52.5200,
-                            long: 13.4050
+                            city: location || (systemConfig ? systemConfig.default_location.city : 'Berlin, Germany'),
+                            lat: lat,
+                            long: long
                         }]
                     })
                 });
@@ -1309,6 +1519,11 @@
             
             // Set initial button action
             document.getElementById('saveTrackingBtn').onclick = addTracking;
+            
+            // Load system config if logged in
+            if (document.getElementById('dashboard').style.display === 'block') {
+                loadSystemConfig();
+            }
         };
     </script>
 </body>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Location Configuration - Admin</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .checkbox {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .checkbox input {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        
+        .checkbox label {
+            margin-bottom: 0;
+            font-weight: normal;
+            color: #666;
+        }
+        
+        .current-location {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .current-location h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .location-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .info-item .label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .info-item .value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .map-container {
+            height: 300px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e0e0e0;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        
+        @media (max-width: 600px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .location-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📍 Location Configuration</h1>
+            <p>Set default location for new packages</p>
+        </div>
+        
+        <div class="content">
+            <div id="status" class="status"></div>
+            
+            <div class="current-location">
+                <h3>Current Default Location</h3>
+                <div id="current-location-info" class="location-info">
+                    <div class="info-item">
+                        <div class="label">City</div>
+                        <div class="value" id="current-city">Loading...</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">Latitude</div>
+                        <div class="value" id="current-lat">Loading...</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">Longitude</div>
+                        <div class="value" id="current-long">Loading...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+            
+            <form id="location-form">
+                <div class="form-group">
+                    <label for="city">City Name</label>
+                    <input type="text" id="city" placeholder="e.g., New York, USA" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lat">Latitude</label>
+                    <input type="number" id="lat" step="0.0001" min="-90" max="90" placeholder="e.g., 40.7128" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="long">Longitude</label>
+                    <input type="number" id="long" step="0.0001" min="-180" max="180" placeholder="e.g., -74.0060" required>
+                </div>
+                
+                <div class="checkbox">
+                    <input type="checkbox" id="update-existing">
+                    <label for="update-existing">Update all existing packages to this location</label>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" id="save-btn" class="btn-primary">
+                        Save Location
+                    </button>
+                    <button type="button" id="reset-btn" class="btn-secondary">
+                        Reset to Default
+                    </button>
+                    <button type="button" id="back-btn" class="btn-secondary" onclick="goBackToAdmin()">
+                        Back to Admin
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        let map;
+        let marker;
+        let currentLocation = {};
+        
+        // Initialize map
+        function initMap(lat, lng, city) {
+            if (!map) {
+                map = L.map('map').setView([lat, lng], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                
+                // Add click event to map
+                map.on('click', onMapClick);
+            }
+            
+            // Clear existing marker
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            
+            // Add new marker
+            marker = L.marker([lat, lng]).addTo(map)
+                .bindPopup(`<b>${city}</b><br>Lat: ${lat.toFixed(4)}<br>Lng: ${lng.toFixed(4)}`)
+                .openPopup();
+                
+            // Update form fields
+            document.getElementById('city').value = city;
+            document.getElementById('lat').value = lat;
+            document.getElementById('long').value = lng;
+        }
+        
+        // Update current location display
+        function updateCurrentLocation(location) {
+            currentLocation = location;
+            document.getElementById('current-city').textContent = location.city || 'Not set';
+            document.getElementById('current-lat').textContent = location.lat || 'Not set';
+            document.getElementById('current-long').textContent = location.long || 'Not set';
+            
+            if (location.lat && location.long) {
+                initMap(location.lat, location.long, location.city);
+            }
+        }
+        
+        // Show status message
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Save location
+        async function saveLocation() {
+            const city = document.getElementById('city').value.trim();
+            const lat = parseFloat(document.getElementById('lat').value);
+            const lng = parseFloat(document.getElementById('long').value);
+            const updateExisting = document.getElementById('update-existing').checked;
+            
+            // Validate inputs
+            if (!city) {
+                showStatus('Please enter a city name', 'error');
+                return;
+            }
+            
+            if (isNaN(lat) || lat < -90 || lat > 90) {
+                showStatus('Please enter a valid latitude (-90 to 90)', 'error');
+                return;
+            }
+            
+            if (isNaN(lng) || lng < -180 || lng > 180) {
+                showStatus('Please enter a valid longitude (-180 to 180)', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('save-btn');
+            const originalText = btn.textContent;
+            btn.innerHTML = '<span class="loading"></span>Saving...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/config/location', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer admin_token'
+                    },
+                    body: JSON.stringify({
+                        city: city,
+                        lat: lat,
+                        long: lng,
+                        update_existing: updateExisting
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('Location updated successfully!');
+                    updateCurrentLocation(data.location);
+                } else {
+                    showStatus(data.error || 'Failed to update location', 'error');
+                }
+            } catch (error) {
+                showStatus('Network error. Please try again.', 'error');
+                console.error('Error:', error);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+        
+        // Reset to Berlin default
+        function resetToDefault() {
+            const confirmReset = confirm('Reset to Berlin, Germany? This will replace your current settings.');
+            if (!confirmReset) return;
+            
+            updateCurrentLocation({
+                city: 'Berlin, Germany',
+                lat: 52.5200,
+                long: 13.4050
+            });
+            
+            showStatus('Reset to Berlin, Germany. Click "Save Location" to apply.');
+        }
+        
+        // Load current configuration
+        async function loadCurrentConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                updateCurrentLocation(config.default_location);
+            } catch (error) {
+                console.error('Error loading config:', error);
+                // Fallback to default
+                updateCurrentLocation({
+                    city: 'Berlin, Germany',
+                    lat: 52.5200,
+                    long: 13.4050
+                });
+            }
+        }
+        
+        // Map click handler
+        function onMapClick(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            
+            // Update form fields
+            document.getElementById('lat').value = lat.toFixed(4);
+            document.getElementById('long').value = lng.toFixed(4);
+            
+            // Add marker
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            
+            marker = L.marker([lat, lng]).addTo(map)
+                .bindPopup(`<b>Selected Location</b><br>Lat: ${lat.toFixed(4)}<br>Lng: ${lng.toFixed(4)}`)
+                .openPopup();
+                
+            // Try to get city name using reverse geocoding
+            fetchCityName(lat, lng);
+        }
+        
+        // Try to get city name from coordinates (using OpenStreetMap Nominatim)
+        async function fetchCityName(lat, lng) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`);
+                const data = await response.json();
+                
+                if (data.address) {
+                    let city = '';
+                    if (data.address.city) {
+                        city = data.address.city;
+                    } else if (data.address.town) {
+                        city = data.address.town;
+                    } else if (data.address.village) {
+                        city = data.address.village;
+                    } else if (data.address.county) {
+                        city = data.address.county;
+                    }
+                    
+                    if (city) {
+                        const country = data.address.country || '';
+                        document.getElementById('city').value = country ? `${city}, ${country}` : city;
+                    }
+                }
+            } catch (error) {
+                console.log('Could not fetch city name. You can enter it manually.');
+            }
+        }
+        
+        // Go back to admin dashboard
+        function goBackToAdmin() {
+            window.location.href = '/admin';
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCurrentConfig();
+            
+            document.getElementById('save-btn').addEventListener('click', saveLocation);
+            document.getElementById('reset-btn').addEventListener('click', resetToDefault);
+        });
+    </script>
+</body>
+</html>

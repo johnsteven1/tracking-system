@@ -1,0 +1,9 @@
+{
+    "default_location": {
+        "city": "Dublin",
+        "lat": 53.3498,
+        "long": -6.2603
+    },
+    "company_name": "Package Tracking System",
+    "map_zoom_level": 12
+}

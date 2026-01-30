@@ -1,5 +1,9 @@
-uploads/
-tracking_data.json
 __pycache__/
 *.pyc
-.env
+venv/
+env/
+.DS_Store
+uploads/
+*.db
+*.sqlite
+instance/
