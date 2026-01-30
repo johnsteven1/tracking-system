@@ -1,10 +1,16 @@
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 flask==2.3.3
 flask-cors==4.0.0
 gunicorn==24.1.1
 =======
+=======
+>>>>>>> Stashed changes
 Flask==3.0.0
 Flask-CORS==4.0.0
 Werkzeug==3.0.1
 gunicorn==21.2.0
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
