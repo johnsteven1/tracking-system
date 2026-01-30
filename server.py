@@ -403,4 +403,6 @@ if __name__ == '__main__':
     print("📦 Sample Tracking IDs: AB123CDE45, JGD987WQTR, BLMN654KJI")
     print("📸 Images will be saved to: uploads/")
     print("\nPress Ctrl+C to stop the server")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
