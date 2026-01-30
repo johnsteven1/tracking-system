@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Real-Time Package Tracking</title>
+    
+    <style>
+        body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #eef2f7 0%, #dce4ed 100%);
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 120vh;
+    margin: 0;
+    padding: 13px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.tracking-container {
+    background: #fff;
+    padding: 21px;
+    border-radius: 17px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 78%;
+    min-height: 11px;
+    max-width: 354px;
+    text-align: center;
+    transition: transform 0.3s ease-in-out;
+    position: relative;
+}
+
+.tracking-container:hover {
+    transform: translateY(-5px);
+}
+
+h1 {
+    font-size: 2em;
+    color: #333;
+    margin-bottom: 18px;
+    font-weight: 600;
+}
+  /* Logo and Branding */
+        .logo img {
+            width: 78px;
+            margin-bottom: 18px;
+            min-height: 4px;
+        }
+        
+        h3 {
+    color: #FF8C00;
+    font-weight: 400; /* or 300 for a lighter look */
+    margin-bottom: 20px;
+    min-height: 6px;
+    font-size: 1.4rem;
+    }
+    
+    h5 {
+    color: #00000;
+    font-weight: 20; /* or 300 for a lighter look */
+    margin-bottom: 20px;
+    min-height: 7px;
+    font-size: 1.4rem;
+}
+ .logo img {
+  border: 2px solid #ccc;   /* border color & thickness */
+  border-radius: 10px;      /* rounded corners */
+  padding: -2px;             /* space between image and border */
+        }
+    
+/* Added style for address info */
+.address-info {
+    background: #f9f9f9;
+    border-left: 4px solid #1e87f0;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 8px;
+    text-align: left;
+    font-size: 0.95em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+
+.address-info p {
+    margin: 5px 0;
+    color: #333;
+    line-height: 1.4;
+}
+
+.address-info strong {
+    color: #1e87f0;
+}
+
+input[type="text"] {
+    padding: 12px;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+    width: 89%;
+    margin-bottom: 13px;
+    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
+    font-size: 1em;
+}
+
+input[type="text"]:focus {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-color: #1e87f0;
+}
+
+ /* Submit Button */
+button {
+    width: 78%;
+    margin-bottom: 14px;
+    padding: 12px;
+    font-size: 1.1rem;
+    color: #fff;
+    background-color: #ff4500; /* Orange red */
+    border: none;
+    border-radius: 9px;
+    min-height: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    background: linear-gradient(to right, #ff6347, #ff4500); /* Orange-red gradient */
+    color: white;
+}
+
+button:hover {
+    background-color: #e03b00;
+    background: linear-gradient(to right, #ff4500, #e03b00); /* Darker orange-red on hover */
+    box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
+}
+.tracking-info {
+    margin-top: 25px;
+    display: none;
+}
+
+.tracking-info p {
+    font-size: 1.1em;
+    color: #555;
+    line-height: 1.5em;
+    text-align: left;
+}
+
+.feedback {
+    font-size: 0.95em;
+    font-weight: bold;
+    color: #1e87f0;
+    margin-top: 15px;
+}
+
+.map-container {
+    height: 300px;
+    width: 100%;
+    margin-top: 20px;
+    display: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+/* Animated square boxes */
+@keyframes float {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+        border-radius: 0;
+    }
+    100% {
+        transform: translateY(-1000px) rotate(720deg);
+        opacity: 0;
+        border-radius: 50%;
+    }
+}
+
+.squares {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1; /* Behind all other content */
+}
+
+.squares span {
+    position: absolute;
+    display: block;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 69, 0, 0.3); /* Light orange-red squares */
+    animation: float 20s linear infinite;
+    bottom: -150px;
+}
+
+/* Different sizes and speeds for the squares */
+.squares span:nth-child(1) {
+    left: 10%;
+    width: 80px;
+    height: 80px;
+    animation-duration: 14s;
+    animation-delay: 0s;
+}
+.squares span:nth-child(2) {
+    left: 20%;
+    width: 60px;
+    height: 60px;
+    animation-duration: 18s;
+    animation-delay: 3s;
+}
+.squares span:nth-child(3) {
+    left: 25%;
+    width: 40px;
+    height: 40px;
+    animation-duration: 16s;
+    animation-delay: 5s;
+}
+.squares span:nth-child(4) {
+    left: 40%;
+    width: 90px;
+    height: 90px;
+    animation-duration: 20s;
+    animation-delay: 1s;
+}
+.squares span:nth-child(5) {
+    left: 70%;
+    width: 70px;
+    height: 70px;
+    animation-duration: 20s;
+    animation-delay: 4s;
+}
+.squares span:nth-child(6) {
+    left: 80%;
+    width: 50px;
+    height: 50px;
+    animation-duration: 18s;
+    animation-delay: 6s;
+}
+
+/* Customer Support Icon Styles */
+.customer-support {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.support-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #25D366, #128C7E); /* WhatsApp gradient */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: pulse 2s infinite;
+}
+
+.support-icon:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.support-icon img {
+    width: 35px;
+    height: 35px;
+    filter: brightness(0) invert(1); /* Makes the icon white */
+}
+
+.support-notice {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    max-width: 250px;
+    text-align: center;
+    font-size: 0.9em;
+    color: #333;
+    border-left: 4px solid #25D366;
+    display: none;
+}
+
+.support-notice.show {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+.support-notice p {
+    margin: 0 0 10px 0;
+    line-height: 1.4;
+}
+
+.support-notice .contact-btn {
+    background: #25D366;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.support-notice .contact-btn:hover {
+    background: #128C7E;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(37, 211, 102, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* NEW: Minimal styles for image modal */
+.image-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1001;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    max-width: 90%;
+    max-height: 90%;
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ff4757;
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.modal-image {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 8px;
+}
+    </style>
+
+    <!-- Include Leaflet.js CSS and JS for OpenStreetMap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>  
+
+<body>
+
+    
+    <div class="tracking-container">
+        <!-- Logo -->
+        <div class="logo">
+            <img src="https://skylimitexpresscompany.vercel.app/about.jpg" alt="Package Logo" 
+                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzgiIGhlaWdodD0iNzgiIHZpZXdCb3g9IjAgMCA3OCA3OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijc4IiBoZWlnaHQ9Ijc4IiByeD0iMTAiIGZpbGw9IiNGRjhGMEUiLz4KPHBhdGggZD0iTTM5IDI1TDMwIDQwSDQ4TDM5IDU1TDMwIDQwSDEwTDM5IDI1WiIgZmlsbD0iIzMzMyIvPgo8L3N2Zz4K'">
+        </div>
+        <h3>Track Your Package:</h3>
+      
+        <!-- Tracking ID Input -->
+        <input type="text" id="trackingInput" maxlength="10" placeholder="Enter Tracking ID">
+        
+        <!-- Input Button -->
+        <button id="trackButton" onclick="processTracking()">Track</button>
+        
+        
+        <p id="feedback" class="feedback"></p>
+
+        <div id="trackingInfo" class="tracking-info">
+            <h3>Tracking Information:</h3>
+            <figure style="
+                border: 1px solid #444; 
+                border-radius: 11px; 
+                padding: 5px; 
+                width: fit-content; 
+                box-shadow: 0 3px 4px rgba(0, 0, 0, 0.4); 
+                background: #f9f9f9;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            ">
+                <img 
+                    src="https://cdn-icons-png.flaticon.com/512/3082/3082383.png" 
+                    alt="Package Image" 
+                    width="188" 
+                    height="151" 
+                    style="border-radius: 8px;"
+                    onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTg4IiBoZWlnaHQ9IjE1MSIgdmlld0JveD0iMCAwIDE4OCAxNTEiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxODgiIGhlaWdodD0iMTUxIiByeD0iOCIgZmlsbD0iI0YwRjBGMSIvPgo8cmVjdCB4PSI0MCIgeT0iMzAiIHdpZHRoPSIxMDgiIGhlaWdodD0iOTEiIHJ4PSI1IiBmaWxsPSIjRkZGIiBzdHJva2U9IiNDQ0MiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSI2MCIgeT0iNTAiIHdpZHRoPSI2OCIgaGVpZ2h0PSIxNSIgcng9IjMiIGZpbGw9IiNGRjhGMEUiLz4KPHJlY3QgeD0iNjAiIHk9Ijc1IiB3aWR0aD0iNDgiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSIjRDhFRUZGIi8+Cjwvc3ZnPgo='"
+                >
+            </figure>
+            <h5>Please be Patient for Page to Load.</h5>
+            <p>Package Location: <span id="location">Loading...</span></p>
+            <p>Longitude: <span id="longitude">Loading...</span></p>
+            <p>Latitude: <span id="latitude">Loading...</span></p>
+            <p>Status: <span id="status">Loading...</span></p>
+            <p>Estimated Delivery: <span id="delivery">Loading...</span></p>
+        </div>
+            
+  <!-- Added Name and Address Information -->
+<div class="address-info" id="addressInfo">
+    <p><strong>Name:</strong> <span id="customerName">Loading...</span></p>
+    <p><strong>Address:</strong> <span id="customerAddress">Loading...</span></p>
+    <p><strong>City/State/ZIP:</strong> <span id="customerCityState">Loading...</span></p>
+</div>
+
+        <!-- Optional real-time map display -->
+        <div id="map" class="map-container"></div>
+    </div>
+    
+    <!-- Customer Support Widget -->
+    <div class="customer-support">
+        <div class="support-notice" id="supportNotice">
+            <p>Need help with tracking? Contact our support team for assistance.</p>
+            <a href="https://wa.me/1234567890" class="contact-btn" target="_blank">
+                <i class="fab fa-whatsapp"></i> Contact Support
+            </a>
+        </div>
+        <div class="support-icon" onclick="toggleSupportNotice()">
+            <i class="fab fa-whatsapp" style="color: white; font-size: 24px;"></i>
+        </div>
+    </div>
+
+    <!-- NEW: Image Modal -->
+    <div class="image-modal" id="imageModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeImageModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="modalImage" class="modal-image" src="" alt="Package Image">
+        </div>
+    </div>
+
+    <div class="squares">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <script>
+        // Customer support notice functionality
+        let noticeVisible = false;
+        
+        function toggleSupportNotice() {
+            const notice = document.getElementById('supportNotice');
+            noticeVisible = !noticeVisible;
+            
+            if (noticeVisible) {
+                notice.classList.add('show');
+            } else {
+                notice.classList.remove('show');
+            }
+        }
+        
+        // Auto-hide notice after 10 seconds if visible
+        function autoHideNotice() {
+            if (noticeVisible) {
+                setTimeout(() => {
+                    if (noticeVisible) {
+                        toggleSupportNotice();
+                    }
+                }, 10000);
+            }
+        }
+        
+        // Initialize support notice functionality
+        document.addEventListener('click', function(event) {
+            const supportArea = document.querySelector('.customer-support');
+            const notice = document.getElementById('supportNotice');
+            
+            // If clicking outside the support area and notice is visible, hide it
+            if (noticeVisible && !supportArea.contains(event.target)) {
+                toggleSupportNotice();
+            }
+        });
+
+        // NEW: Function to open image modal
+        function openImageModal(imageUrl) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            
+            modalImage.src = imageUrl;
+            modal.style.display = 'flex';
+        }
+
+        // NEW: Function to close image modal
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        // NEW: Function to load and display package image
+        function loadPackageImage(trackingData) {
+            const figure = document.querySelector('figure');
+            const img = figure.querySelector('img');
+            
+            if (trackingData.image_url || trackingData.image_base64) {
+                const imageUrl = trackingData.image_url || `data:image/jpeg;base64,${trackingData.image_base64}`;
+                
+                // Update the existing image
+                img.src = imageUrl;
+                
+                // Make image clickable to view larger
+                img.style.cursor = 'pointer';
+                img.onclick = () => openImageModal(imageUrl);
+            }
+        }
+
+        // NEW: Function to format and display delivery date
+        function updateDeliveryDisplay(trackingData) {
+            const deliveryElement = document.getElementById("delivery");
+            
+            if (trackingData.delivery_date) {
+                // Format the date from API
+                const deliveryDate = new Date(trackingData.delivery_date);
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const formattedDate = deliveryDate.toLocaleDateString('en-US', options);
+                
+                // Calculate days remaining
+                const today = new Date();
+                const daysDiff = Math.ceil((deliveryDate - today) / (1000 * 60 * 60 * 24));
+                
+                // Display the date
+                deliveryElement.textContent = formattedDate;
+                
+                // Color code based on urgency
+                if (daysDiff < 0) {
+                    deliveryElement.style.color = "#2ecc71"; // Delivered (green)
+                    deliveryElement.innerHTML += ' <span style="color:#2ecc71; font-size:0.8em;">(Delivered)</span>';
+                } else if (daysDiff === 0) {
+                    deliveryElement.style.color = "#9b59b6"; // Today (purple)
+                    deliveryElement.innerHTML += ' <span style="color:#9b59b6; font-size:0.8em;">(Today)</span>';
+                } else if (daysDiff <= 2) {
+                    deliveryElement.style.color = "#3498db"; // Soon (blue)
+                    deliveryElement.innerHTML += ` <span style="color:#3498db; font-size:0.8em;">(In ${daysDiff} day${daysDiff > 1 ? 's' : ''})</span>`;
+                } else {
+                    deliveryElement.style.color = "#f39c12"; // Later (orange)
+                    deliveryElement.innerHTML += ` <span style="color:#f39c12; font-size:0.8em;">(In ${daysDiff} days)</span>`;
+                }
+            }
+        }
+
+        async function processTracking() {
+            const trackingInput = document.getElementById("trackingInput").value.trim();
+            const feedback = document.getElementById("feedback");
+            const addressInfo = document.getElementById("addressInfo");
+
+            if (trackingInput.length === 10) {
+                feedback.textContent = "Checking tracking ID...";
+                feedback.style.color = "blue";
+                
+                try {
+                    // Call API to check tracking ID
+                    const response = await fetch(`/api/tracking/${trackingInput}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        feedback.textContent = "✓ Tracking ID found! Retrieving data...";
+                        feedback.style.color = "green";
+                        
+                        // Update address information from API
+                        document.getElementById('customerName').textContent = data.name || 'Not Available';
+                        document.getElementById('customerAddress').textContent = data.address || 'Not Available';
+                        document.getElementById('customerCityState').textContent = 
+                            `${data.city || ''}, ${data.state || ''} ${data.zip || ''}`.trim();
+                        
+                        // Show the address information
+                        addressInfo.style.display = "block";
+                        
+                        // NEW: Load package image if available
+                        loadPackageImage(data);
+                        
+                        // NEW: Update delivery display with admin-set date
+                        updateDeliveryDisplay(data);
+                        
+                        startRealTimeUpdates(data);
+                        
+                        // Show support notice when tracking starts
+                        if (!noticeVisible) {
+                            toggleSupportNotice();
+                            autoHideNotice();
+                        }
+                    } else {
+                        feedback.textContent = "✗ Tracking ID not found. Please check and try again.";
+                        feedback.style.color = "red";
+                        addressInfo.style.display = "none";
+                        
+                        // Show support notice for help
+                        if (!noticeVisible) {
+                            toggleSupportNotice();
+                            autoHideNotice();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    feedback.textContent = "⚠ Network error. Please try again.";
+                    feedback.style.color = "orange";
+                }
+            } else {
+                feedback.textContent = "Tracking ID not recognized. Your tracking number (LXVN) can be found in your transfer history page and in your printed or emailed receipt.";
+                feedback.style.color = "red";
+                addressInfo.style.display = "none";
+            }
+        }
+
+        let map;
+        let marker;
+        let updateInterval;
+
+        function startRealTimeUpdates(trackingData) {
+            const trackingInfo = document.getElementById("trackingInfo");
+            trackingInfo.style.display = "block";
+
+            // Initialize the map
+            const lat = trackingData.locations?.[0]?.lat || 52.5200;
+            const long = trackingData.locations?.[0]?.long || 13.4050;
+            initializeMap(lat, long);
+
+            // Set initial values
+            updateTrackingDisplay(trackingData);
+
+            // Clear any existing interval
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+
+            // Set up real-time updates every 4 seconds
+            updateInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/tracking/${document.getElementById("trackingInput").value.trim()}/status`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        updateTrackingDisplay(data);
+                    }
+                } catch (error) {
+                    console.error('Update error:', error);
+                }
+            }, 4000);
+        }
+
+        function initializeMap(lat, long) {
+            const mapContainer = document.getElementById('map');
+            mapContainer.style.display = "block";
+
+            // Remove existing map if any
+            if (map) {
+                map.remove();
+            }
+
+            map = L.map('map').setView([lat, long], 8);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Remove existing marker if any
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            
+            marker = L.marker([lat, long]).addTo(map);
+            marker.bindPopup("<b>Package Location</b><br>Current position").openPopup();
+        }
+
+        function updateTrackingDisplay(trackingData) {
+            // Update location
+            const location = trackingData.locations?.[0] || { city: "Unknown", lat: 0, long: 0 };
+            document.getElementById("location").textContent = location.city;
+            document.getElementById("longitude").textContent = location.long;
+            document.getElementById("latitude").textContent = location.lat;
+
+            // Update status with color coding
+            const status = trackingData.status || "Unknown";
+            document.getElementById("status").textContent = status;
+            
+            // Status color coding
+            const statusElement = document.getElementById("status");
+            const statusColors = {
+                "In Transit": "#3498db",
+                "Processing": "#f39c12",
+                "Out for Delivery": "#9b59b6",
+                "Delivered": "#2ecc71",
+                "Delayed": "#e74c3c",
+                "Unknown": "#95a5a6"
+            };
+            statusElement.style.color = statusColors[status] || "#333";
+            statusElement.style.fontWeight = "bold";
+
+            // NEW: Use admin-set delivery date if available, otherwise use the old logic
+            if (trackingData.delivery_date) {
+                updateDeliveryDisplay(trackingData);
+            } else {
+                // Fallback to old delivery estimate logic
+                const now = new Date();
+                const estimated = new Date(now);
+                
+                // Different delivery estimates based on status
+                if (trackingData.status === "Delivered") {
+                    estimated.setDate(estimated.getDate() - 1); // Delivered yesterday
+                } else if (trackingData.status === "Out for Delivery") {
+                    estimated.setDate(estimated.getDate()); // Today
+                } else if (trackingData.status === "In Transit") {
+                    estimated.setDate(estimated.getDate() + 2); // 2 days from now
+                } else {
+                    estimated.setDate(estimated.getDate() + 3); // 3 days from now
+                }
+                
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const estimateText = estimated.toLocaleDateString('en-US', options);
+                document.getElementById("delivery").textContent = estimateText;
+                
+                // Color code based on urgency
+                const deliveryElement = document.getElementById("delivery");
+                const daysDiff = Math.ceil((estimated - now) / (1000 * 60 * 60 * 24));
+                
+                if (daysDiff < 0) {
+                    deliveryElement.style.color = "#2ecc71"; // Delivered (green)
+                } else if (daysDiff === 0) {
+                    deliveryElement.style.color = "#9b59b6"; // Today (purple)
+                } else if (daysDiff <= 2) {
+                    deliveryElement.style.color = "#3498db"; // Soon (blue)
+                } else {
+                    deliveryElement.style.color = "#f39c12"; // Later (orange)
+                }
+            }
+
+            // Update map marker
+            if (map && marker) {
+                marker.setLatLng([location.lat, location.long]);
+                marker.bindPopup(`<b>${location.city}</b><br>Status: ${status}`).openPopup();
+                
+                // Smooth map movement
+                map.panTo([location.lat, location.long], {
+                    animate: true,
+                    duration: 1
+                });
+            }
+        }
+
+        // Handle Enter key in input field
+        document.getElementById("trackingInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                processTracking();
+            }
+        });
+
+        // Auto-focus on input field
+        document.getElementById("trackingInput").focus();
+
+        // Clear interval when page is closed
+        window.addEventListener('beforeunload', function() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('imageModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeImageModal();
+            }
+        });
+
+        // AI simulation for tracking analysis
+        setInterval(function() {
+            if (document.getElementById("trackingInfo").style.display === "block") {
+                console.log("🤖 AI is analyzing tracking patterns...");
+                const analysis = {
+                    deliveryTime: "On Schedule",
+                    potentialIssues: "None detected",
+                    geolocationAccuracy: "High precision",
+                    routeOptimization: "Optimal",
+                    weatherConditions: "Clear"
+                };
+                console.log("AI Analysis Report:", analysis);
+            }
+        }, 20000);
+    </script>
+</body>
+</html>

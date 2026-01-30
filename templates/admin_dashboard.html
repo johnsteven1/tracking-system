@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Dashboard - Package Tracking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+            color: #333;
+        }
+
+        .admin-container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .login-screen h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+        }
+
+        .login-screen input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .login-screen input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .login-screen button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        .login-screen button:active {
+            transform: scale(0.98);
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 i {
+            font-size: 1.8rem;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-card i {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-card h3 {
+            font-size: 1.8rem;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* Content Panels */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            padding: 6px 12px;
+            margin: 2px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .edit-btn {
+            background: #4cd137;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #ff4757;
+            color: white;
+        }
+
+        .image-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Forms */
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .form-actions button:active {
+            transform: scale(0.98);
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #4cd137 0%, #44bd32 100%);
+            color: white;
+        }
+
+        .cancel-btn {
+            background: #f1f2f6;
+            color: #666;
+        }
+
+        /* Image Upload */
+        .image-upload-container {
+            border: 2px dashed #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .image-upload-container:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .image-upload-container i {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .image-upload-container p {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .image-upload-container input {
+            display: none;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Date Input */
+        .date-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .date-input-group input {
+            flex: 1;
+        }
+
+        .current-date-btn {
+            padding: 12px 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Image Modal */
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 10px;
+            }
+            
+            .login-screen {
+                padding: 20px 15px;
+                margin-top: 10px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-container {
+                font-size: 14px;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+            }
+            
+            .date-input-group {
+                flex-direction: column;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2ed573;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s, fadeOut 0.3s 2.7s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Login Screen -->
+        <div class="login-screen" id="loginScreen">
+            <h1><i class="fas fa-lock"></i> Admin Login</h1>
+            <input type="text" id="username" placeholder="Username" value="admin">
+            <input type="password" id="password" placeholder="Password" value="admin123">
+            <button onclick="login()">Login to Dashboard</button>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard" id="dashboard">
+            <div class="header">
+                <h1><i class="fas fa-tachometer-alt"></i> Package Tracking Admin</h1>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid" id="statsContainer">
+                <!-- Stats will be loaded here -->
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('trackingTab')">
+                    <i class="fas fa-box"></i> Tracking IDs
+                </button>
+                <button class="tab-btn" onclick="switchTab('addTab')">
+                    <i class="fas fa-plus-circle"></i> Add New
+                </button>
+                <button class="tab-btn" onclick="switchTab('imageTab')">
+                    <i class="fas fa-images"></i> Images
+                </button>
+                <button class="tab-btn" onclick="switchTab('settingsTab')">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+            </div>
+
+            <!-- Tracking IDs Tab -->
+            <div id="trackingTab" class="tab-content active">
+                <div class="table-container">
+                    <div id="loadingSpinner" class="spinner"></div>
+                    <table id="trackingTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Tracking ID</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Estimated Delivery</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trackingTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Add/Edit Tab -->
+            <div id="addTab" class="tab-content">
+                <div class="form-container">
+                    <div class="form-group">
+                        <label><i class="fas fa-barcode"></i> Tracking ID</label>
+                        <input type="text" id="newTrackingId" placeholder="AB123CDE45" maxlength="10">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Customer Name</label>
+                        <input type="text" id="newName" placeholder="Sandra Beasley-Lawson">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-home"></i> Address</label>
+                        <input type="text" id="newAddress" placeholder="811 Robin Circle">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-city"></i> City/State/ZIP</label>
+                        <input type="text" id="newCityState" placeholder="Hattiesburg, MS 39402">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-map-marker-alt"></i> Initial Location</label>
+                        <input type="text" id="newLocation" placeholder="Berlin, Germany">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-day"></i> Estimated Delivery Date</label>
+                        <div class="date-input-group">
+                            <input type="date" id="newDeliveryDate">
+                            <button type="button" class="current-date-btn" onclick="setCurrentDate()">
+                                <i class="fas fa-calendar-plus"></i> Today
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-info-circle"></i> Status</label>
+                        <select id="newStatus">
+                            <option value="In Transit">In Transit</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Out for Delivery">Out for Delivery</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Delayed">Delayed</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button class="save-btn" id="saveTrackingBtn">
+                            <i class="fas fa-save"></i> Save Tracking ID
+                        </button>
+                        <button class="cancel-btn" onclick="clearForm()">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Image Management Tab -->
+            <div id="imageTab" class="tab-content">
+                <div class="form-container">
+                    <h3><i class="fas fa-images"></i> Package Image Management</h3>
+                    
+                    <div class="form-group">
+                        <label>Select Tracking ID</label>
+                        <select id="imageTrackingId" onchange="loadTrackingImage()">
+                            <option value="">Select Tracking ID...</option>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div id="imageUploadSection" style="display: none;">
+                        <div class="form-group">
+                            <label>Current Image</label>
+                            <div id="currentImagePreview" style="text-align: center; margin-bottom: 20px;">
+                                <img id="currentImage" src="" alt="No image" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                                <p id="noImageText" style="color: #666; padding: 20px;">No image uploaded</p>
+                            </div>
+                        </div>
+
+                        <div class="image-upload-container" onclick="document.getElementById('imageFile').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Click to upload package image</p>
+                            <p style="font-size: 12px; color: #999;">Max size: 2MB (JPG, PNG, GIF)</p>
+                            <input type="file" id="imageFile" accept="image/*" onchange="previewImage(event)">
+                        </div>
+
+                        <div style="text-align: center;">
+                            <img id="imagePreview" class="image-preview" alt="Image preview">
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="save-btn" onclick="uploadImage()">
+                                <i class="fas fa-upload"></i> Upload Image
+                            </button>
+                            <button class="cancel-btn" onclick="clearImage()">
+                                <i class="fas fa-trash"></i> Clear Image
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settingsTab" class="tab-content">
+                <div class="form-container">
+                    <h3><i class="fas fa-cogs"></i> System Settings</h3>
+                    <div class="form-group">
+                        <label>API Endpoint</label>
+                        <input type="text" id="apiEndpoint" value="http://localhost:5000/api" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Data File</label>
+                        <input type="text" id="dataFile" value="tracking_data.json" readonly>
+                    </div>
+                    <button class="save-btn" onclick="exportData()" style="width: 100%; margin-bottom: 10px;">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                    <button class="cancel-btn" onclick="importData()" style="width: 100%;">
+                        <i class="fas fa-upload"></i> Import Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="image-modal" id="imageModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="modalImage" class="modal-image" src="" alt="Package Image">
+            <div style="text-align: center; margin-top: 15px;">
+                <p id="modalTrackingId" style="font-weight: bold;"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let currentToken = null;
+        let allTrackingData = {};
+        let currentImageTrackingId = null;
+        let currentImageFile = null;
+
+        // Login function
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentToken = data.token;
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('dashboard').style.display = 'block';
+                    loadDashboardData();
+                    showToast('Login successful!', 'success');
+                } else {
+                    showToast('Invalid credentials!', 'error');
+                }
+            } catch (error) {
+                showToast('Connection error!', 'error');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            currentToken = null;
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'block';
+            showToast('Logged out successfully', 'info');
+        }
+
+        // Switch tabs
+        function switchTab(tabId) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Remove active class from all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Show corresponding content
+            document.getElementById(tabId).classList.add('active');
+            
+            // If switching to tracking tab, refresh data
+            if (tabId === 'trackingTab') {
+                loadTrackingData();
+            } else if (tabId === 'imageTab') {
+                loadTrackingIdsForImages();
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            await Promise.all([
+                loadStats(),
+                loadTrackingData()
+            ]);
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const stats = await response.json();
+                
+                const statsContainer = document.getElementById('statsContainer');
+                statsContainer.innerHTML = `
+                    <div class="stat-card">
+                        <i class="fas fa-boxes"></i>
+                        <h3>${stats.total_tracking_ids}</h3>
+                        <p>Total Tracking IDs</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-truck-moving"></i>
+                        <h3>${stats.active_shipments}</h3>
+                        <p>Active Shipments</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>${stats.delivered_today}</h3>
+                        <p>Delivered Today</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-image"></i>
+                        <h3>${stats.images_count || 0}</h3>
+                        <p>Images Uploaded</p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load tracking data
+        async function loadTrackingData() {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const trackingTable = document.getElementById('trackingTable');
+            
+            loadingSpinner.style.display = 'block';
+            trackingTable.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_BASE}/tracking/all`);
+                allTrackingData = await response.json();
+                
+                const tableBody = document.getElementById('trackingTableBody');
+                tableBody.innerHTML = '';
+                
+                Object.entries(allTrackingData).forEach(([trackingId, data]) => {
+                    const hasImage = data.image_url || data.image_base64 ? '✓' : '✗';
+                    const deliveryDate = data.delivery_date ? new Date(data.delivery_date).toLocaleDateString() : 'Not set';
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${trackingId}</strong></td>
+                        <td>${data.name || 'N/A'}</td>
+                        <td><span style="
+                            background: ${getStatusColor(data.status)};
+                            color: white;
+                            padding: 4px 8px;
+                            border-radius: 12px;
+                            font-size: 12px;
+                        ">${data.status}</span></td>
+                        <td>${deliveryDate}</td>
+                        <td>${new Date(data.last_updated).toLocaleString()}</td>
+                        <td>
+                            <button class="action-btn edit-btn" onclick="editTracking('${trackingId}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="action-btn image-btn" onclick="manageImage('${trackingId}')">
+                                <i class="fas fa-image"></i> Image
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deleteTracking('${trackingId}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                loadingSpinner.style.display = 'none';
+                trackingTable.style.display = 'table';
+                loadStats();
+            } catch (error) {
+                console.error('Error loading tracking data:', error);
+                loadingSpinner.style.display = 'none';
+                showToast('Error loading data!', 'error');
+            }
+        }
+
+        // Load tracking IDs for image dropdown
+        async function loadTrackingIdsForImages() {
+            try {
+                const response = await fetch(`${API_BASE}/tracking/all`);
+                allTrackingData = await response.json();
+                
+                const select = document.getElementById('imageTrackingId');
+                select.innerHTML = '<option value="">Select Tracking ID...</option>';
+                
+                Object.keys(allTrackingData).forEach(trackingId => {
+                    const option = document.createElement('option');
+                    option.value = trackingId;
+                    option.textContent = `${trackingId} - ${allTrackingData[trackingId].name || 'Unknown'}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading tracking IDs:', error);
+            }
+        }
+
+        // Load tracking image
+        async function loadTrackingImage() {
+            const trackingId = document.getElementById('imageTrackingId').value;
+            const imageSection = document.getElementById('imageUploadSection');
+            const currentImage = document.getElementById('currentImage');
+            const noImageText = document.getElementById('noImageText');
+            
+            if (!trackingId) {
+                imageSection.style.display = 'none';
+                return;
+            }
+            
+            currentImageTrackingId = trackingId;
+            imageSection.style.display = 'block';
+            
+            try {
+                const response = await fetch(`${API_BASE}/tracking/${trackingId}`);
+                const data = await response.json();
+                
+                if (data.success && (data.image_url || data.image_base64)) {
+                    currentImage.src = data.image_url || `data:image/jpeg;base64,${data.image_base64}`;
+                    currentImage.style.display = 'block';
+                    noImageText.style.display = 'none';
+                } else {
+                    currentImage.style.display = 'none';
+                    noImageText.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading image:', error);
+                currentImage.style.display = 'none';
+                noImageText.style.display = 'block';
+            }
+        }
+
+        // Preview image before upload
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('imagePreview');
+            
+            if (file) {
+                // Check file size (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast('Image too large! Max size is 2MB.', 'error');
+                    document.getElementById('imageFile').value = '';
+                    preview.style.display = 'none';
+                    return;
+                }
+                
+                // Check file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (!validTypes.includes(file.type)) {
+                    showToast('Invalid file type! Please upload JPG, PNG, or GIF.', 'error');
+                    document.getElementById('imageFile').value = '';
+                    preview.style.display = 'none';
+                    return;
+                }
+                
+                currentImageFile = file;
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Upload image
+        async function uploadImage() {
+            if (!currentImageTrackingId) {
+                showToast('Please select a tracking ID first!', 'error');
+                return;
+            }
+            
+            if (!currentImageFile) {
+                showToast('Please select an image to upload!', 'error');
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('image', currentImageFile);
+                
+                const response = await fetch(`${API_BASE}/tracking/${currentImageTrackingId}/image`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Image uploaded successfully!', 'success');
+                    loadTrackingImage(); // Refresh the image display
+                    document.getElementById('imagePreview').style.display = 'none';
+                    currentImageFile = null;
+                    document.getElementById('imageFile').value = '';
+                } else {
+                    showToast(data.error || 'Error uploading image!', 'error');
+                }
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                showToast('Error uploading image!', 'error');
+            }
+        }
+
+        // Clear image
+        function clearImage() {
+            document.getElementById('imagePreview').style.display = 'none';
+            currentImageFile = null;
+            document.getElementById('imageFile').value = '';
+        }
+
+        // Manage image for specific tracking ID
+        function manageImage(trackingId) {
+            // Switch to image tab
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector('[onclick="switchTab(\'imageTab\')"]').classList.add('active');
+            document.getElementById('imageTab').classList.add('active');
+            
+            // Select the tracking ID in dropdown
+            document.getElementById('imageTrackingId').value = trackingId;
+            loadTrackingImage();
+        }
+
+        // Set current date
+        function setCurrentDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('newDeliveryDate').value = today;
+        }
+
+        // Add new tracking ID
+        async function addTracking() {
+            const trackingId = document.getElementById('newTrackingId').value;
+            const name = document.getElementById('newName').value;
+            const address = document.getElementById('newAddress').value;
+            const cityState = document.getElementById('newCityState').value;
+            const location = document.getElementById('newLocation').value;
+            const deliveryDate = document.getElementById('newDeliveryDate').value;
+            const status = document.getElementById('newStatus').value;
+            
+            if (!trackingId || trackingId.length !== 10) {
+                showToast('Tracking ID must be 10 characters!', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/tracking/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        tracking_id: trackingId,
+                        name: name,
+                        address: address,
+                        city: cityState.split(',')[0]?.trim() || '',
+                        state: cityState.split(',')[1]?.trim() || '',
+                        zip: cityState.split(' ').pop() || '',
+                        delivery_date: deliveryDate,
+                        status: status,
+                        locations: [{
+                            city: location,
+                            lat: 52.5200,
+                            long: 13.4050
+                        }]
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Tracking ID added successfully!', 'success');
+                    clearForm();
+                    loadTrackingData();
+                    switchTab('trackingTab');
+                } else {
+                    showToast(data.error || 'Error adding tracking ID!', 'error');
+                }
+            } catch (error) {
+                showToast('Connection error!', 'error');
+            }
+        }
+
+        // Edit tracking (populate form)
+        function editTracking(trackingId) {
+            const data = allTrackingData[trackingId];
+            
+            document.getElementById('newTrackingId').value = trackingId;
+            document.getElementById('newName').value = data.name || '';
+            document.getElementById('newAddress').value = data.address || '';
+            document.getElementById('newCityState').value = `${data.city || ''}, ${data.state || ''} ${data.zip || ''}`;
+            document.getElementById('newLocation').value = data.locations?.[0]?.city || '';
+            document.getElementById('newDeliveryDate').value = data.delivery_date || '';
+            document.getElementById('newStatus').value = data.status || 'In Transit';
+            
+            // Change save button to update
+            const saveBtn = document.getElementById('saveTrackingBtn');
+            saveBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update Tracking ID';
+            saveBtn.onclick = () => updateTracking(trackingId);
+            
+            switchTab('addTab');
+            showToast('Editing ' + trackingId, 'info');
+        }
+
+        // Update tracking
+        async function updateTracking(trackingId) {
+            const name = document.getElementById('newName').value;
+            const address = document.getElementById('newAddress').value;
+            const cityState = document.getElementById('newCityState').value;
+            const location = document.getElementById('newLocation').value;
+            const deliveryDate = document.getElementById('newDeliveryDate').value;
+            const status = document.getElementById('newStatus').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/tracking/update/${trackingId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        address: address,
+                        city: cityState.split(',')[0]?.trim() || '',
+                        state: cityState.split(',')[1]?.trim() || '',
+                        zip: cityState.split(' ').pop() || '',
+                        delivery_date: deliveryDate,
+                        status: status,
+                        locations: [{
+                            city: location,
+                            lat: 52.5200,
+                            long: 13.4050
+                        }]
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Tracking ID updated successfully!', 'success');
+                    clearForm();
+                    loadTrackingData();
+                    switchTab('trackingTab');
+                } else {
+                    showToast(data.error || 'Error updating tracking ID!', 'error');
+                }
+            } catch (error) {
+                showToast('Connection error!', 'error');
+            }
+        }
+
+        // Delete tracking
+        async function deleteTracking(trackingId) {
+            if (!confirm(`Are you sure you want to delete tracking ID: ${trackingId}? This will also delete any uploaded images.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/tracking/delete/${trackingId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Tracking ID deleted successfully!', 'success');
+                    loadTrackingData();
+                } else {
+                    showToast(data.error || 'Error deleting tracking ID!', 'error');
+                }
+            } catch (error) {
+                showToast('Connection error!', 'error');
+            }
+        }
+
+        // Clear form
+        function clearForm() {
+            document.getElementById('newTrackingId').value = '';
+            document.getElementById('newName').value = '';
+            document.getElementById('newAddress').value = '';
+            document.getElementById('newCityState').value = '';
+            document.getElementById('newLocation').value = '';
+            document.getElementById('newDeliveryDate').value = '';
+            document.getElementById('newStatus').value = 'In Transit';
+            
+            // Reset save button
+            const saveBtn = document.getElementById('saveTrackingBtn');
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Tracking ID';
+            saveBtn.onclick = addTracking;
+        }
+
+        // Export data
+        function exportData() {
+            const dataStr = JSON.stringify(allTrackingData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tracking_data_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('Data exported successfully!', 'success');
+        }
+
+        // Import data
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+                    
+                    // Validate data structure
+                    if (!data.tracking_ids) {
+                        showToast('Invalid data file format!', 'error');
+                        return;
+                    }
+                    
+                    // Ask for confirmation
+                    if (!confirm(`Import ${Object.keys(data.tracking_ids).length} tracking records? This will replace existing data.`)) {
+                        return;
+                    }
+                    
+                    // Send to server
+                    const response = await fetch(`${API_BASE}/import`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: text
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showToast('Data imported successfully!', 'success');
+                        loadTrackingData();
+                    } else {
+                        showToast(result.error || 'Error importing data!', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error importing data:', error);
+                    showToast('Error importing data!', 'error');
+                }
+            };
+            
+            input.click();
+        }
+
+        // View image in modal
+        function viewImage(trackingId, imageUrl) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalTrackingId = document.getElementById('modalTrackingId');
+            
+            modalImage.src = imageUrl;
+            modalTrackingId.textContent = `Tracking ID: ${trackingId}`;
+            modal.style.display = 'flex';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        // Helper function for status colors
+        function getStatusColor(status) {
+            switch(status) {
+                case 'In Transit': return '#3498db';
+                case 'Delivered': return '#2ecc71';
+                case 'Delayed': return '#e74c3c';
+                case 'Processing': return '#f39c12';
+                case 'Out for Delivery': return '#9b59b6';
+                default: return '#95a5a6';
+            }
+        }
+
+        // Toast notification
+        function showToast(message, type = 'info') {
+            const colors = {
+                success: '#2ed573',
+                error: '#ff4757',
+                info: '#3742fa',
+                warning: '#ffa502'
+            };
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.style.background = colors[type] || colors.info;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 
+                                  type === 'error' ? 'exclamation-circle' : 
+                                  type === 'warning' ? 'exclamation-triangle' : 
+                                  'info-circle'}"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Close modal on background click
+        document.getElementById('imageModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        window.onload = function() {
+            // Set today's date as default in date field
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('newDeliveryDate').value = today;
+            
+            // Set initial button action
+            document.getElementById('saveTrackingBtn').onclick = addTracking;
+        };
+    </script>
+</body>
+</html>
