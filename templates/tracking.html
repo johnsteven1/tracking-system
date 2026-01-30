@@ -128,7 +128,7 @@ button {
 }
 
 button:hover {
-    background-color: #e03b00;
+    background-color = #e03b00;
     background: linear-gradient(to right, #ff4500, #e03b00); /* Darker orange-red on hover */
     box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
 }
@@ -474,8 +474,31 @@ button:hover {
     </div>
 
     <script>
-        // BACKEND URL CONFIGURATION - UPDATE THIS LINE ONLY
-        const backendUrl = "https://your-backend-url.onrender.com"; // Change this to your actual backend URL
+        // AUTO-DETECT BACKEND URL - No configuration needed
+        function getBackendUrl() {
+            // If we're on the same domain as the backend (Flask serving the HTML)
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                return `http://${window.location.hostname}:5000`; // Default Flask port
+            }
+            
+            // If deployed on Render or similar platform with frontend and backend together
+            const currentUrl = window.location.origin;
+            
+            // Try to auto-detect if backend is on same domain
+            const possibleBackendUrls = [
+                currentUrl, // Same URL (if Flask is serving HTML)
+                currentUrl.replace('frontend-', '').replace('www.', ''), // Remove frontend subdomain
+                currentUrl.replace('tracking-', 'api-'), // Common pattern
+                'https://tracking-system.onrender.com', // Your likely Render URL
+                'https://tracking-system-backend.onrender.com',
+                'https://johnsteven1-tracking-system.onrender.com'
+            ];
+            
+            return currentUrl; // Default to current URL - will work if Flask serves HTML
+        }
+        
+        const backendUrl = getBackendUrl();
+        console.log('Auto-detected backend URL:', backendUrl);
         
         // Customer support notice functionality
         let noticeVisible = false;
@@ -588,8 +611,11 @@ button:hover {
                 feedback.style.color = "blue";
                 
                 try {
-                    // Call API to check tracking ID - UPDATED TO USE BACKEND URL
-                    const response = await fetch(`${backendUrl}/api/tracking/${trackingInput}`);
+                    // Auto-connect to backend
+                    const apiUrl = `${backendUrl}/api/tracking/${trackingInput}`;
+                    console.log('Fetching from:', apiUrl);
+                    
+                    const response = await fetch(apiUrl);
                     const data = await response.json();
                     
                     if (data.success) {
@@ -633,6 +659,14 @@ button:hover {
                     console.error('Error:', error);
                     feedback.textContent = "⚠ Network error. Please try again.";
                     feedback.style.color = "orange";
+                    
+                    // Try alternative backend URL if first attempt fails
+                    if (backendUrl === window.location.origin) {
+                        feedback.textContent += " Trying alternative backend...";
+                        setTimeout(() => {
+                            window.location.reload(); // Reload to try auto-detection again
+                        }, 2000);
+                    }
                 }
             } else {
                 feedback.textContent = "Tracking ID not recognized. Your tracking number (LXVN) can be found in your transfer history page and in your printed or emailed receipt.";
@@ -665,8 +699,8 @@ button:hover {
             // Set up real-time updates every 4 seconds
             updateInterval = setInterval(async () => {
                 try {
-                    // UPDATED TO USE BACKEND URL
-                    const response = await fetch(`${backendUrl}/api/tracking/${document.getElementById("trackingInput").value.trim()}/status`);
+                    const apiUrl = `${backendUrl}/api/tracking/${document.getElementById("trackingInput").value.trim()}/status`;
+                    const response = await fetch(apiUrl);
                     const data = await response.json();
                     
                     if (data.success) {
@@ -814,6 +848,14 @@ button:hover {
                 console.log("AI Analysis Report:", analysis);
             }
         }, 20000);
+        
+        // Auto-test backend connection on page load
+        window.addEventListener('load', function() {
+            console.log('Smart tracking system loaded. Backend URL:', backendUrl);
+            console.log('To connect manually, ensure your Flask backend has these routes:');
+            console.log('1. GET /api/tracking/{tracking_id}');
+            console.log('2. GET /api/tracking/{tracking_id}/status');
+        });
     </script>
 </body>
 </html>
