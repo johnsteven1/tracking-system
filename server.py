@@ -30,11 +30,11 @@ def get_deployment_config():
     elif is_heroku:
         print("⚡ Detected Heroku deployment")
         data_dir = os.getcwd()
-        base_url = f"https://{os.environ.get('HEROKU_APP_NAME', 'your-app')}.herokuapp.com"
+        base_url = f"https://{os.environ.get('HEROKU_APP_NAME', 'tracking-system')}.herokuapp.com"
     elif is_pythonanywhere:
-    print("☁️ Detected PythonAnywhere deployment")
-    data_dir = '/home/johnsteven1/tracking_system'  # Your actual username
-    base_url = f"https://{os.environ.get('PYTHONANYWHERE_DOMAIN', 'johnsteven1.pythonanywhere.com')}"
+        print("☁️ Detected PythonAnywhere deployment")
+        data_dir = '/home/johnsteven1/tracking-system'
+        base_url = f"https://{os.environ.get('PYTHONANYWHERE_DOMAIN', 'johnsteven1.pythonanywhere.com')}"
     else:
         print("💻 Local development mode")
         data_dir = os.getcwd()
@@ -194,13 +194,19 @@ def load_data():
         sample_image_path = os.path.join(UPLOAD_FOLDER, 'sample_package.jpg')
         if not os.path.exists(sample_image_path):
             try:
-                # Create a simple placeholder image
+                # Try to create a simple placeholder image
+                # This will only work if Pillow is installed
                 from PIL import Image, ImageDraw
                 img = Image.new('RGB', (400, 300), color='lightblue')
                 d = ImageDraw.Draw(img)
                 d.text((100, 150), "Package\nSample\nImage", fill="darkblue", align="center")
                 img.save(sample_image_path)
                 print(f"📸 Created sample image at: {sample_image_path}")
+            except ImportError:
+                # Pillow not installed, create a text file instead
+                with open(sample_image_path.replace('.jpg', '.txt'), 'w') as f:
+                    f.write("Sample package image - upload real images via admin panel")
+                print(f"📝 Created placeholder text file (install Pillow for image support)")
             except Exception as e:
                 print(f"⚠️ Could not create sample image: {e}")
         
