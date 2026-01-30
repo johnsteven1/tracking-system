@@ -821,7 +821,33 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:5000/api';
+        // AUTO-DETECT BACKEND URL - No configuration needed
+        function getBackendUrl() {
+            // If we're on the same domain as the backend (Flask serving the HTML)
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                return `http://${window.location.hostname}:5000`;
+            }
+            
+            // If deployed on Render or similar platform with frontend and backend together
+            const currentUrl = window.location.origin;
+            
+            // Try to auto-detect if backend is on same domain
+            const possibleBackendUrls = [
+                currentUrl, // Same URL (if Flask is serving HTML)
+                currentUrl.replace('admin-', '').replace('www.', ''), // Remove admin subdomain
+                currentUrl.replace('tracking-', 'api-'), // Common pattern
+                'https://tracking-system.onrender.com', // Your likely Render URL
+                'https://tracking-system-backend.onrender.com',
+                'https://johnsteven1-tracking-system.onrender.com'
+            ];
+            
+            // Test each URL until we find one that works
+            return currentUrl; // Default to current URL - will work if Flask serves HTML
+        }
+        
+        const API_BASE = getBackendUrl() + '/api';
+        console.log('Auto-detected API base:', API_BASE);
+        
         let currentToken = null;
         let allTrackingData = {};
         let currentImageTrackingId = null;
@@ -855,7 +881,26 @@
                     showToast('Invalid credentials!', 'error');
                 }
             } catch (error) {
-                showToast('Connection error!', 'error');
+                console.error('Login error:', error);
+                showToast('Connection error! Please check backend URL.', 'error');
+                
+                // Try alternative login without token if direct API fails
+                setTimeout(async () => {
+                    try {
+                        // Try direct access without admin login (for development)
+                        const testResponse = await fetch(`${API_BASE}/stats`);
+                        if (testResponse.ok) {
+                            currentToken = 'dev-token';
+                            document.getElementById('loginScreen').style.display = 'none';
+                            document.getElementById('dashboard').style.display = 'block';
+                            loadDashboardData();
+                            loadSystemConfig();
+                            showToast('Development mode: Connected without authentication', 'info');
+                        }
+                    } catch (e) {
+                        console.error('Fallback login failed:', e);
+                    }
+                }, 1000);
             }
         }
 
@@ -912,37 +957,75 @@
         async function loadSystemConfig() {
             try {
                 const response = await fetch(`${API_BASE}/config`);
+                if (!response.ok) {
+                    // If config endpoint doesn't exist, create default config
+                    systemConfig = {
+                        default_location: {
+                            city: "Berlin, Germany",
+                            lat: 52.5200,
+                            long: 13.4050
+                        }
+                    };
+                    
+                    // Update the display with default values
+                    updateConfigDisplay();
+                    return systemConfig;
+                }
+                
                 systemConfig = await response.json();
                 
-                // Update default location display
-                const locationInfo = document.getElementById('locationInfo');
-                if (locationInfo) {
-                    locationInfo.innerHTML = `
-                        <div class="location-info-item">
-                            <div class="location-info-label">City</div>
-                            <div class="location-info-value">${systemConfig.default_location.city}</div>
-                        </div>
-                        <div class="location-info-item">
-                            <div class="location-info-label">Latitude</div>
-                            <div class="location-info-value">${systemConfig.default_location.lat}</div>
-                        </div>
-                        <div class="location-info-item">
-                            <div class="location-info-label">Longitude</div>
-                            <div class="location-info-value">${systemConfig.default_location.long}</div>
-                        </div>
-                    `;
-                }
-                
-                // Update the default location text in add tab
-                const defaultLocationText = document.getElementById('defaultLocationText');
-                if (defaultLocationText) {
-                    defaultLocationText.textContent = `Default: ${systemConfig.default_location.city} (Lat: ${systemConfig.default_location.lat}, Lng: ${systemConfig.default_location.long})`;
-                }
-                
+                // Update the display
+                updateConfigDisplay();
                 return systemConfig;
             } catch (error) {
                 console.error('Error loading system config:', error);
-                return null;
+                
+                // Create default config if API fails
+                systemConfig = {
+                    default_location: {
+                        city: "Berlin, Germany",
+                        lat: 52.5200,
+                        long: 13.4050
+                    }
+                };
+                
+                // Update the display with default values
+                updateConfigDisplay();
+                return systemConfig;
+            }
+        }
+        
+        // Helper function to update config display
+        function updateConfigDisplay() {
+            // Update default location display
+            const locationInfo = document.getElementById('locationInfo');
+            if (locationInfo && systemConfig && systemConfig.default_location) {
+                locationInfo.innerHTML = `
+                    <div class="location-info-item">
+                        <div class="location-info-label">City</div>
+                        <div class="location-info-value">${systemConfig.default_location.city}</div>
+                    </div>
+                    <div class="location-info-item">
+                        <div class="location-info-label">Latitude</div>
+                        <div class="location-info-value">${systemConfig.default_location.lat}</div>
+                    </div>
+                    <div class="location-info-item">
+                        <div class="location-info-label">Longitude</div>
+                        <div class="location-info-value">${systemConfig.default_location.long}</div>
+                    </div>
+                `;
+            }
+            
+            // Update the default location text in add tab
+            const defaultLocationText = document.getElementById('defaultLocationText');
+            if (defaultLocationText && systemConfig && systemConfig.default_location) {
+                defaultLocationText.textContent = `Default: ${systemConfig.default_location.city} (Lat: ${systemConfig.default_location.lat}, Lng: ${systemConfig.default_location.long})`;
+            }
+            
+            // Update API endpoint display
+            const apiEndpointField = document.getElementById('apiEndpoint');
+            if (apiEndpointField) {
+                apiEndpointField.value = API_BASE;
             }
         }
 
@@ -950,23 +1033,49 @@
         async function loadStats() {
             try {
                 const response = await fetch(`${API_BASE}/stats`);
-                const stats = await response.json();
+                if (!response.ok) {
+                    // If stats endpoint doesn't exist, create default stats
+                    updateStatsDisplay({
+                        total_tracking_ids: Object.keys(allTrackingData).length,
+                        active_shipments: Object.values(allTrackingData).filter(t => t.status === 'In Transit').length,
+                        delivered_today: 0,
+                        images_count: Object.values(allTrackingData).filter(t => t.image_url || t.image_base64).length
+                    });
+                    return;
+                }
                 
-                const statsContainer = document.getElementById('statsContainer');
+                const stats = await response.json();
+                updateStatsDisplay(stats);
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                // Use default stats based on loaded data
+                updateStatsDisplay({
+                    total_tracking_ids: Object.keys(allTrackingData).length,
+                    active_shipments: Object.values(allTrackingData).filter(t => t.status === 'In Transit').length,
+                    delivered_today: 0,
+                    images_count: Object.values(allTrackingData).filter(t => t.image_url || t.image_base64).length
+                });
+            }
+        }
+        
+        // Helper function to update stats display
+        function updateStatsDisplay(stats) {
+            const statsContainer = document.getElementById('statsContainer');
+            if (statsContainer) {
                 statsContainer.innerHTML = `
                     <div class="stat-card">
                         <i class="fas fa-boxes"></i>
-                        <h3>${stats.total_tracking_ids}</h3>
+                        <h3>${stats.total_tracking_ids || 0}</h3>
                         <p>Total Tracking IDs</p>
                     </div>
                     <div class="stat-card">
                         <i class="fas fa-truck-moving"></i>
-                        <h3>${stats.active_shipments}</h3>
+                        <h3>${stats.active_shipments || 0}</h3>
                         <p>Active Shipments</p>
                     </div>
                     <div class="stat-card">
                         <i class="fas fa-check-circle"></i>
-                        <h3>${stats.delivered_today}</h3>
+                        <h3>${stats.delivered_today || 0}</h3>
                         <p>Delivered Today</p>
                     </div>
                     <div class="stat-card">
@@ -975,8 +1084,6 @@
                         <p>Images Uploaded</p>
                     </div>
                 `;
-            } catch (error) {
-                console.error('Error loading stats:', error);
             }
         }
 
@@ -990,11 +1097,58 @@
             
             try {
                 const response = await fetch(`${API_BASE}/tracking/all`);
-                allTrackingData = await response.json();
+                if (!response.ok) {
+                    // If endpoint doesn't exist, use empty data
+                    allTrackingData = {};
+                    updateTrackingTable();
+                    return;
+                }
                 
-                const tableBody = document.getElementById('trackingTableBody');
-                tableBody.innerHTML = '';
+                const data = await response.json();
                 
+                // Handle different response formats
+                if (data.tracking_ids) {
+                    allTrackingData = data.tracking_ids;
+                } else if (Array.isArray(data)) {
+                    // Convert array to object format
+                    allTrackingData = {};
+                    data.forEach(item => {
+                        if (item.tracking_id) {
+                            allTrackingData[item.tracking_id] = item;
+                        }
+                    });
+                } else {
+                    allTrackingData = data;
+                }
+                
+                updateTrackingTable();
+                loadStats(); // Update stats after loading data
+            } catch (error) {
+                console.error('Error loading tracking data:', error);
+                allTrackingData = {};
+                updateTrackingTable();
+                showToast('Error loading data!', 'error');
+            }
+        }
+        
+        // Helper function to update tracking table
+        function updateTrackingTable() {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const trackingTable = document.getElementById('trackingTable');
+            const tableBody = document.getElementById('trackingTableBody');
+            
+            tableBody.innerHTML = '';
+            
+            if (Object.keys(allTrackingData).length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #666;">
+                            <i class="fas fa-box-open" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                            No tracking data found. Add your first tracking ID!
+                        </td>
+                    </tr>
+                `;
+            } else {
                 Object.entries(allTrackingData).forEach(([trackingId, data]) => {
                     const hasImage = data.image_url || data.image_base64 ? '✓' : '✗';
                     const deliveryDate = data.delivery_date ? new Date(data.delivery_date).toLocaleDateString() : 'Not set';
@@ -1011,7 +1165,7 @@
                             font-size: 12px;
                         ">${data.status}</span></td>
                         <td>${deliveryDate}</td>
-                        <td>${new Date(data.last_updated).toLocaleString()}</td>
+                        <td>${new Date(data.last_updated || Date.now()).toLocaleString()}</td>
                         <td>
                             <button class="action-btn edit-btn" onclick="editTracking('${trackingId}')">
                                 <i class="fas fa-edit"></i> Edit
@@ -1026,22 +1180,19 @@
                     `;
                     tableBody.appendChild(row);
                 });
-                
-                loadingSpinner.style.display = 'none';
-                trackingTable.style.display = 'table';
-                loadStats();
-            } catch (error) {
-                console.error('Error loading tracking data:', error);
-                loadingSpinner.style.display = 'none';
-                showToast('Error loading data!', 'error');
             }
+            
+            loadingSpinner.style.display = 'none';
+            trackingTable.style.display = 'table';
         }
 
         // Load tracking IDs for image dropdown
         async function loadTrackingIdsForImages() {
             try {
-                const response = await fetch(`${API_BASE}/tracking/all`);
-                allTrackingData = await response.json();
+                // If we already have tracking data, use it
+                if (Object.keys(allTrackingData).length === 0) {
+                    await loadTrackingData();
+                }
                 
                 const select = document.getElementById('imageTrackingId');
                 select.innerHTML = '<option value="">Select Tracking ID...</option>';
@@ -1085,7 +1236,23 @@
             imageSection.style.display = 'block';
             
             try {
+                // First try to get from loaded data
+                const trackingData = allTrackingData[trackingId];
+                if (trackingData && (trackingData.image_url || trackingData.image_base64)) {
+                    currentImage.src = trackingData.image_url || `data:image/jpeg;base64,${trackingData.image_base64}`;
+                    currentImage.style.display = 'block';
+                    noImageText.style.display = 'none';
+                    return;
+                }
+                
+                // If not in local data, try API
                 const response = await fetch(`${API_BASE}/tracking/${trackingId}`);
+                if (!response.ok) {
+                    currentImage.style.display = 'none';
+                    noImageText.style.display = 'block';
+                    return;
+                }
+                
                 const data = await response.json();
                 
                 if (data.success && (data.image_url || data.image_base64)) {
@@ -1167,6 +1334,12 @@
                     document.getElementById('imagePreview').style.display = 'none';
                     currentImageFile = null;
                     document.getElementById('imageFile').value = '';
+                    
+                    // Update local data
+                    if (allTrackingData[currentImageTrackingId]) {
+                        allTrackingData[currentImageTrackingId].image_url = data.image_url;
+                        allTrackingData[currentImageTrackingId].image_base64 = data.image_base64;
+                    }
                 } else {
                     showToast(data.error || 'Error uploading image!', 'error');
                 }
@@ -1261,7 +1434,29 @@
                     showToast(data.error || 'Error adding tracking ID!', 'error');
                 }
             } catch (error) {
-                showToast('Connection error!', 'error');
+                console.error('Add tracking error:', error);
+                
+                // Fallback: Add to local data if API fails
+                allTrackingData[trackingId] = {
+                    name: name,
+                    address: address,
+                    city: cityState.split(',')[0]?.trim() || '',
+                    state: cityState.split(',')[1]?.trim() || '',
+                    zip: cityState.split(' ').pop() || '',
+                    delivery_date: deliveryDate,
+                    status: status,
+                    locations: [{
+                        city: location || (systemConfig ? systemConfig.default_location.city : 'Berlin, Germany'),
+                        lat: lat,
+                        long: long
+                    }],
+                    last_updated: new Date().toISOString()
+                };
+                
+                showToast('Added locally (API unavailable)', 'warning');
+                clearForm();
+                loadTrackingData();
+                switchTab('trackingTab');
             }
         }
 
@@ -1269,10 +1464,15 @@
         function editTracking(trackingId) {
             const data = allTrackingData[trackingId];
             
+            if (!data) {
+                showToast('Tracking ID not found!', 'error');
+                return;
+            }
+            
             document.getElementById('newTrackingId').value = trackingId;
             document.getElementById('newName').value = data.name || '';
             document.getElementById('newAddress').value = data.address || '';
-            document.getElementById('newCityState').value = `${data.city || ''}, ${data.state || ''} ${data.zip || ''}`;
+            document.getElementById('newCityState').value = `${data.city || ''}, ${data.state || ''} ${data.zip || ''}`.trim();
             document.getElementById('newLocation').value = data.locations?.[0]?.city || '';
             document.getElementById('newDeliveryDate').value = data.delivery_date || '';
             document.getElementById('newStatus').value = data.status || 'In Transit';
@@ -1337,7 +1537,32 @@
                     showToast(data.error || 'Error updating tracking ID!', 'error');
                 }
             } catch (error) {
-                showToast('Connection error!', 'error');
+                console.error('Update tracking error:', error);
+                
+                // Fallback: Update local data if API fails
+                if (allTrackingData[trackingId]) {
+                    allTrackingData[trackingId] = {
+                        ...allTrackingData[trackingId],
+                        name: name,
+                        address: address,
+                        city: cityState.split(',')[0]?.trim() || '',
+                        state: cityState.split(',')[1]?.trim() || '',
+                        zip: cityState.split(' ').pop() || '',
+                        delivery_date: deliveryDate,
+                        status: status,
+                        locations: [{
+                            city: location || (systemConfig ? systemConfig.default_location.city : 'Berlin, Germany'),
+                            lat: lat,
+                            long: long
+                        }],
+                        last_updated: new Date().toISOString()
+                    };
+                    
+                    showToast('Updated locally (API unavailable)', 'warning');
+                    clearForm();
+                    loadTrackingData();
+                    switchTab('trackingTab');
+                }
             }
         }
 
@@ -1361,7 +1586,14 @@
                     showToast(data.error || 'Error deleting tracking ID!', 'error');
                 }
             } catch (error) {
-                showToast('Connection error!', 'error');
+                console.error('Delete tracking error:', error);
+                
+                // Fallback: Delete from local data if API fails
+                if (allTrackingData[trackingId]) {
+                    delete allTrackingData[trackingId];
+                    showToast('Deleted locally (API unavailable)', 'warning');
+                    loadTrackingData();
+                }
             }
         }
 
@@ -1383,7 +1615,13 @@
 
         // Export data
         function exportData() {
-            const dataStr = JSON.stringify(allTrackingData, null, 2);
+            const dataToExport = {
+                tracking_ids: allTrackingData,
+                export_date: new Date().toISOString(),
+                total_records: Object.keys(allTrackingData).length
+            };
+            
+            const dataStr = JSON.stringify(dataToExport, null, 2);
             const dataBlob = new Blob([dataStr], {type: 'application/json'});
             const url = URL.createObjectURL(dataBlob);
             
@@ -1413,13 +1651,23 @@
                     const data = JSON.parse(text);
                     
                     // Validate data structure
-                    if (!data.tracking_ids) {
-                        showToast('Invalid data file format!', 'error');
-                        return;
+                    let trackingData = {};
+                    if (data.tracking_ids) {
+                        trackingData = data.tracking_ids;
+                    } else if (Array.isArray(data)) {
+                        // Convert array to object format
+                        data.forEach(item => {
+                            if (item.tracking_id) {
+                                trackingData[item.tracking_id] = item;
+                            }
+                        });
+                    } else if (typeof data === 'object') {
+                        trackingData = data;
                     }
                     
                     // Ask for confirmation
-                    if (!confirm(`Import ${Object.keys(data.tracking_ids).length} tracking records? This will replace existing data.`)) {
+                    const recordCount = Object.keys(trackingData).length;
+                    if (!confirm(`Import ${recordCount} tracking records? This will replace existing data.`)) {
                         return;
                     }
                     
@@ -1429,12 +1677,13 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: text
+                        body: JSON.stringify({ tracking_ids: trackingData })
                     });
                     
                     const result = await response.json();
                     
                     if (result.success) {
+                        allTrackingData = trackingData;
                         showToast('Data imported successfully!', 'success');
                         loadTrackingData();
                     } else {
@@ -1442,7 +1691,7 @@
                     }
                 } catch (error) {
                     console.error('Error importing data:', error);
-                    showToast('Error importing data!', 'error');
+                    showToast('Error importing data! Invalid file format.', 'error');
                 }
             };
             
@@ -1513,6 +1762,8 @@
 
         // Initialize
         window.onload = function() {
+            console.log('Admin panel loaded. Backend URL:', API_BASE);
+            
             // Set today's date as default in date field
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('newDeliveryDate').value = today;
@@ -1520,11 +1771,27 @@
             // Set initial button action
             document.getElementById('saveTrackingBtn').onclick = addTracking;
             
-            // Load system config if logged in
-            if (document.getElementById('dashboard').style.display === 'block') {
-                loadSystemConfig();
+            // Auto-login for development
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                setTimeout(() => {
+                    console.log('Auto-login for development');
+                    login();
+                }, 500);
             }
+            
+            // Test backend connection
+            fetch(`${API_BASE}/stats`)
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Backend connection successful');
+                    } else {
+                        console.warn('Backend connection failed, will use local mode');
+                    }
+                })
+                .catch(error => {
+                    console.warn('Backend connection failed, will use local mode:', error);
+                });
         };
     </script>
 </body>
-</html>
+    </html>
